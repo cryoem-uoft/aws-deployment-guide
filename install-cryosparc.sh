@@ -5,7 +5,7 @@
 if [ "${cfn_node_type}" == "MasterServer" ]; then
    CUDA_INSTALL_PATH=/shared/cuda
    CRYOSPARC_INSTALL_PATH=/shared/cryosparc
-   LICENSE_ID=""
+   LICENSE_ID=$2
    yum -y update
 
    # Install CUDA Toolkit (10.2 for CryoSPARC)
