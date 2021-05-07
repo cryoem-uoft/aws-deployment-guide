@@ -1,0 +1,112 @@
+[aws]
+aws_region_name = @AWS_REGION@
+
+[global]
+cluster_template = cryosparc
+update_check = true
+sanity_check = true
+
+[aliases]
+ssh = ssh {CFN_USER}@{MASTER_IP} {ARGS}
+
+[cluster cryosparc]
+base_os = alinux2
+dashboard_settings = cryosparc-dashboard
+ebs_settings = cryosparc-ebs
+enable_intel_hpc_platform = false
+ephemeral_dir = /scratch
+fsx_settings = cryosparc-fsx
+key_name = @AWS_KEY@
+master_instance_type = c5n.9xlarge
+master_root_volume_size = 100
+post_install = s3://@S3_CONFIG_BUCKET@/install-cryosparc.sh
+queue_settings = gpu-large, gpu-med, gpu-small
+s3_read_resource = arn:aws:s3:::@S3_CONFIG_BUCKET@*
+scheduler = slurm
+vpc_settings = cryosparc-vpc
+
+[vpc cryosparc-vpc]
+vpc_id = @VPC_ID@
+master_subnet_id = @MASTER_SUBNET_ID@
+compute_subnet_id = @COMPUTE_SUBNET_ID@
+use_public_ips = false
+
+[dashboard cryosparc-dashboard]
+enable = true
+
+[queue gpu-large]
+compute_resource_settings = p4d-24xlarge, p3-16xlarge, g4dn-metal
+compute_type = ondemand
+disable_hyperthreading = true
+enable_efa = false
+placement_group = DYNAMIC
+
+[queue gpu-med]
+compute_resource_settings = p3-8xlarge, g4dn-12xlarge
+compute_type = ondemand
+disable_hyperthreading = true
+enable_efa = false
+placement_group = DYNAMIC
+
+[queue gpu-small]
+compute_resource_settings = p3-2xlarge, g4dn-16xlarge
+compute_type = ondemand
+disable_hyperthreading = true
+enable_efa = false
+placement_group = DYNAMIC
+
+[compute_resource g4dn-16xlarge]
+initial_count = 0
+instance_type = g4dn.16xlarge
+max_count = 20
+min_count = 0
+
+[compute_resource g4dn-12xlarge]
+initial_count = 0
+instance_type = g4dn.12xlarge
+max_count = 20
+min_count = 0
+
+[compute_resource g4dn-metal]
+initial_count = 0
+instance_type = g4dn.metal
+max_count = 20
+min_count = 0
+
+[compute_resource p3-2xlarge]
+initial_count = 0
+instance_type = p3.2xlarge
+max_count = 20
+min_count = 0
+
+[compute_resource p3-8xlarge]
+initial_count = 0
+instance_type = p3.8xlarge
+max_count = 20
+min_count = 0
+
+[compute_resource p3-16xlarge]
+initial_count = 0
+instance_type = p3.16xlarge
+max_count = 20
+min_count = 0
+
+[compute_resource p4d-24xlarge]
+initial_count = 0
+instance_type = p4d.24xlarge
+max_count = 20
+min_count = 0
+
+[ebs cryosparc-ebs]
+encrypted = false
+shared_dir = /shared
+volume_size = 100
+volume_type = gp3
+
+[fsx cryosparc-fsx]
+deployment_type = SCRATCH_2
+export_path = s3://@S3_DATA_BUCKET@
+import_path = s3://@S3_DATA_BUCKET@
+imported_file_chunk_size = 1024
+shared_dir = /fsx
+storage_capacity = 2400

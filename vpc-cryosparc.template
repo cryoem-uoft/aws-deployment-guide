@@ -1,0 +1,155 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Deploys the basic network architecture for a CryoSPARC ParallelCluster
+
+Parameters:
+  AvailabilityZone:
+    Type: String
+    Default: us-east-1b
+    Description: Availability zone where the compute node subnet is deployed
+
+  EnvironmentName:
+    Type: String
+    Default: CryoSPARC
+    Description: An environment name that is prefixed to resource names
+
+  PrivateSubnetCIDR:
+    Type: String
+    Default: "10.0.1.0/24"
+    Description: Please enter the IP range (CIDR notation) for the private subnet where compute nodes will be launched
+
+  PublicSubnetCIDR:
+    Type: String
+    Default: "10.0.0.0/28"
+    Description: Please enter the IP range (CIDR notation) for the public subnet where the head node will be launched
+
+  VpcCIDR:
+    Type: String
+    Default: "10.0.0.0/16"
+    Description: Please enter the IP range (CIDR notation) for this VPC
+
+Resources:
+  NatEIPPublic:
+    Type: "AWS::EC2::EIP"
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      Domain: vpc
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-IG
+        - Key: Stack
+          Value: !Ref "AWS::StackId"
+
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} VPC
+        - Key: Stack
+          Value: !Ref "AWS::StackId"
+
+  PrivateRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Private Route Table
+        - Key: Stack
+          Value: !Ref "AWS::StackId"
+      VpcId: !Ref VPC
+
+  PublicRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Route Table
+        - Key: Stack
+          Value: !Ref "AWS::StackId"
+      VpcId: !Ref VPC
+
+  VPCGatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  DefaultPublicRoute:
+    Type: "AWS::EC2::Route"
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateSubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      CidrBlock: !Ref PrivateSubnetCIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Private Subnet
+        - Key: Stack
+          Value: !Ref "AWS::StackId"
+      VpcId: !Ref VPC
+
+  PublicSubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      CidrBlock: !Ref PublicSubnetCIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Subnet
+        - Key: Stack
+          Value: !Ref "AWS::StackId"
+      VpcId: !Ref VPC
+
+  NatGatewayPublic:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId: !GetAtt NatEIPPublic.AllocationId
+      SubnetId: !Ref PublicSubnet
+
+  RouteAssociationPrivate:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet
+
+  RouteAssociationPublic:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  NatRoutePrivate:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref NatGatewayPublic
+      RouteTableId: !Ref PrivateRouteTable
+
+Outputs:
+  PrivateSubnetId:
+    Description: A reference to the private subnet
+    Value: !Ref PrivateSubnet
+
+  PublicSubnetId:
+    Description: A reference to the public subnet
+    Value: !Ref PublicSubnet
+
+  VpcId:
+    Description: A reference to the created VPC
+    Value: !Ref VPC
