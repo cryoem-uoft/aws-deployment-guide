@@ -42,7 +42,6 @@ sed -i "s|@AWS_KEY@|${AWS_KEY}|g" cryosparc-pcluster.config
 sed -i "s|@VPC_ID@|${VPC_ID}|g" cryosparc-pcluster.config
 sed -i "s|@COMPUTE_SUBNET_ID@|${COMPUTE_SUBNET_ID}|g" cryosparc-pcluster.config
 sed -i "s|@MASTER_SUBNET_ID@|${MASTER_SUBNET_ID}|g" cryosparc-pcluster.config
-sed -i "s|@S3_CONFIG_BUCKET@|${CONFIG_BUCKET_NAME}|g" cryosparc-pcluster.config
 sed -i "s|@S3_DATA_BUCKET@|${DATA_BUCKET_NAME}|g" cryosparc-pcluster.config
 sed -i "s|@CRYOSPARC_LICENSE_ID@|${CRYOSPARC_LICENSE_ID}|g" cryosparc-pcluster.config
 
