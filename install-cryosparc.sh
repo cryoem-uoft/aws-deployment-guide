@@ -60,24 +60,31 @@ EOF
       --cudapath ${CUDA_INSTALL_PATH}/cuda-11.3 \
       --yes
 
-   # Create cluster config files
-   cat > ${CRYOSPARC_INSTALL_PATH}/cluster_info.json << 'EOF'
+   rm ${CRYOSPARC_INSTALL_PATH}/*.tar.gz
+   chown -R ec2-user: /shared/cryosparc
+
+   # Start cluster
+   /bin/su -c "${CRYOSPARC_INSTALL_PATH}/cryosparc_master/bin/cryosparcm start" - ec2-user
+
+      # Create cluster config files for each GPU partition in SLURM
+   for PARTITION in gpu-large gpu-med gpu-small 
+   do
+
+   cat > ${CRYOSPARC_INSTALL_PATH}/cluster_info.json <<EOF
 {
 "qdel_cmd_tpl": "scancel {{ cluster_job_id }}",
-"worker_bin_path": "@CRYOSPARC_INSTALL_PATH@/cryosparc_worker/bin/cryosparcw",
+"worker_bin_path": "$CRYOSPARC_INSTALL_PATH/cryosparc_worker/bin/cryosparcw",
 "title": "cryosparc-cluster",
 "cache_path": "",
 "qinfo_cmd_tpl": "sinfo",
 "qsub_cmd_tpl": "sbatch {{ script_path_abs }}",
 "qstat_cmd_tpl": "squeue -j {{ cluster_job_id }}",
 "send_cmd_tpl": "{{ command }}",
-"name": "gpu"
+"name": "$PARTITION"
 }
 EOF
 
-   sed -i "s|@CRYOSPARC_INSTALL_PATH@|${CRYOSPARC_INSTALL_PATH}|g" ${CRYOSPARC_INSTALL_PATH}/cluster_info.json
-
-   cat > ${CRYOSPARC_INSTALL_PATH}/cluster_script.sh << 'EOF'
+   cat > ${CRYOSPARC_INSTALL_PATH}/cluster_script.sh <<EOF
 #!/bin/bash
 #SBATCH --job-name=cryosparc_{{ project_uid }}_{{ job_uid }}
 #SBATCH --output={{ job_log_path_abs }}
@@ -86,18 +93,14 @@ EOF
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task={{ num_cpu }}
 #SBATCH --gres=gpu:{{ num_gpu }}
-#SBATCH --partition=gpu
+#SBATCH --partition=$PARTITION
 {{ run_cmd }}
 EOF
 
-   rm ${CRYOSPARC_INSTALL_PATH}/*.tar.gz
-   chown -R ec2-user: /shared/cryosparc
-
-   # Start cluster
-   /bin/su -c "${CRYOSPARC_INSTALL_PATH}/cryosparc_master/bin/cryosparcm start" - ec2-user
-
    # Connect worker nodes to cluster
    /bin/su -c "cd ${CRYOSPARC_INSTALL_PATH} && ${CRYOSPARC_INSTALL_PATH}/cryosparc_master/bin/cryosparcm cluster connect" - ec2-user
+
+   done
 
    # Restart master
    /bin/su -c "cd ${CRYOSPARC_INSTALL_PATH} && ${CRYOSPARC_INSTALL_PATH}/cryosparc_master/bin/cryosparcm restart" - ec2-user
