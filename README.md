@@ -1,7 +1,13 @@
 # aws-deployment-guide
 Seamlessly deploy cryoSPARC in the cloud using AWS.
 
-[See the guide for full deployment instructions.](https://guide.cryosparc.com/deploy/cryosparc-on-aws)
+[See the Deployment Guide for full deployment instructions.](https://guide.cryosparc.com/deploy/cryosparc-on-aws)
+
+The Deployment Guide provides end-to-end sample instructions for deployment [cryoSPARC](https://cryosparc.com/) on AWS using AWS ParallelCluster. 
+CryoSPARC is developed by Structura Biotechnology Inc. Additional information about cryoSPARC, including [licensing](https://guide.cryosparc.com/licensing), is available at [guide.cryosparc.com](https://guide.cryosparc.com/).
+
+## Note
+The Deployment Guide and these scripts serve as an example of possible installation options, performance and cost, but each user’s results may vary. Performance and costs may scale differently depending on the specific compute setup, data being processed, how long AWS compute resources are being used, specific steps used in processing, etc. 
 
 ## Usage
 ```
