@@ -7,7 +7,6 @@ while [[ ""$#"" -gt 0 ]]; do
         --region) AWS_REGION="$2"; shift ;;
         --cluster-name) STACK_NAME="$2"; shift ;;
         --az) COMPUTE_AZ="$2"; shift ;;
-        --config-bucket) CONFIG_BUCKET_NAME="$2"; shift ;;
         --data-bucket) DATA_BUCKET_NAME="$2"; shift ;;
         --aws-key) AWS_KEY="$2"; shift ;;
         --cryosparc-license-id) CRYOSPARC_LICENSE_ID="$2"; shift ;;
@@ -24,7 +23,7 @@ echo "Deploying CryoSPARC CloudFormation stack"
 aws cloudformation deploy --region ${AWS_REGION} \
                           --template-file vpc-cryosparc.template \
                           --stack-name ${VPC_STACK_NAME} \
-                          --parameter-override AvailabilityZone=${COMPUTE_AZ} CryoSPARCConfigBucket=${CONFIG_BUCKET_NAME}
+                          --parameter-override AvailabilityZone=${COMPUTE_AZ}
 aws cloudformation wait stack-create-complete --stack-name ${VPC_STACK_NAME} --region ${AWS_REGION}
 
 # Get VPC and Subnet IDs
