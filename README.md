@@ -1,6 +1,7 @@
 # aws-deployment-guide
-Seamlessly deploy cryoSPARC in the cloud using AWS
-See the guide for full deployment instructions [LINK TBC].
+Seamlessly deploy cryoSPARC in the cloud using AWS.
+
+[See the guide for full deployment instructions.](https://guide.cryosparc.com/deploy/cryosparc-on-aws)
 
 ## Usage
 ```
