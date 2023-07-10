@@ -6,20 +6,24 @@ if [ "${cfn_node_type}" == "MasterServer" ]; then
    CUDA_INSTALL_PATH=/shared/cuda
    CRYOSPARC_INSTALL_PATH=/shared/cryosparc
    LICENSE_ID=$2
+   CUDA_VERSION=11.8.0
+   CUDA_INSTALLER_FILENAME=cuda_11.8.0_520.61.05_linux.run
+   CUDA_DOWNLOAD_PATH=https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
+   CUDA_TOOLKIT_PATH=${CUDA_INSTALL_PATH}/cuda-${CUDA_VERSION}
    yum -y update
 
-   # Install CUDA Toolkit (11.3 for CryoSPARC)
+   # Install CUDA Toolkit
    mkdir -p ${CUDA_INSTALL_PATH}
    cd ${CUDA_INSTALL_PATH}
-   wget https://developer.download.nvidia.com/compute/cuda/11.3.0/local_installers/cuda_11.3.0_465.19.01_linux.run
-   sh cuda_11.3.0_465.19.01_linux.run --defaultroot=/shared/cuda --toolkit --toolkitpath=${CUDA_INSTALL_PATH}/cuda-11.3 --samples --silent
-   rm cuda_11.3.0_465.19.01_linux.run
+   wget ${CUDA_DOWNLOAD_PATH}
+   sh ${CUDA_INSTALLER_FILENAME} --defaultroot=/shared/cuda --toolkit --toolkitpath=${CUDA_TOOLKIT_PATH} --samples --silent
+   rm ${CUDA_INSTALLER_FILENAME}
 
    # Add CUDA to the path
    cat > /etc/profile.d/cuda.sh << 'EOF'
-PATH=$PATH:@CUDA_INSTALL_PATH@/cuda-11.3/bin
+PATH=$PATH:@CUDA_TOOLKIT_PATH@/bin
 EOF
-   sed -i "s|@CUDA_INSTALL_PATH@|${CUDA_INSTALL_PATH}|g" /etc/profile.d/cuda.sh
+   sed -i "s|@CUDA_TOOLKIT_PATH@|${CUDA_TOOLKIT_PATH}|g" /etc/profile.d/cuda.sh
    . /etc/profile.d/cuda.sh
 
    # Download cryoSPARC
@@ -57,7 +61,7 @@ EOF
    tar -xf cryosparc_worker.tar.gz
    cd cryosparc_worker
    ./install.sh --license ${LICENSE_ID} \
-      --cudapath ${CUDA_INSTALL_PATH}/cuda-11.3 \
+      --cudapath ${CUDA_TOOLKIT_PATH} \
       --yes
 
    rm ${CRYOSPARC_INSTALL_PATH}/*.tar.gz
